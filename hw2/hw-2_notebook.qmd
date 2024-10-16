@@ -1,0 +1,121 @@
+---
+title: "Homework assignment 2"
+author: "Hussain, Mustaali"
+format: pdf
+---
+# Part A 
+# Question 1 
+``` {r}
+library(tidyverse)
+lordofrings_data<- readr::read_csv("lord-of-the-rings-trilogy.csv")
+print(lordofrings_data)
+
+
+```
+
+# Question 2
+- One rule of having tidy data is ensuring that every column is a single variable. However, each column from columns 2-7 contain multiple variables of both race and gender
+- Also, there is inconsistency in the capitalization of words in the column names (ex: male and female are sometimes capitalized but not other times, hobbit is sometimes capitalized but not other times). This inconsistency interferes with having tidy data
+
+# Question 3
+- If this data set was tidy, it would have 4 columns and 18 rows. 
+- When separating the columns into their own single variable, we would get 4 columns: "movie", "race", "gender", "word_count"
+Since there are 3 races and 2 genders per race, each movie will have 6 combinations of race and gender (ex:elf female, elf male, hobbit female, hobbit male, man female, man male). And since their are  3 movies, this results in a total of 18 rows (6 rows per movie × 3 movies = 18 rows)
+
+# Question 4 
+- The column names in tidy format would be: "movie", "race", "gender", and "word_count"
+
+# Part B
+
+# Question 1
+``` {r}
+tidy_lordofrings_data <- lordofrings_data %>%
+  pivot_longer(cols = elf_female:Man_male,
+               names_to = c("race", "gender"),
+               names_sep = "_",
+               values_to = "word_count")
+
+rename_with(tidy_lordofrings_data,tolower)
+tidy_lordofrings_data <- tidy_lordofrings_data %>%
+  mutate(race = tolower(race),
+         gender = tolower(gender))
+
+print(tidy_lordofrings_data)
+```
+
+# Question 2
+``` {r}
+library(dplyr)
+male_hobbit_total <- tidy_lordofrings_data %>%
+  filter(race == "hobbit", gender == "male") %>%
+  summarize(total_word_count = sum(word_count))
+
+female_elf_total <- tidy_lordofrings_data %>%
+  filter(race == "elf", gender == "female") %>%
+  summarize(total_word_count = sum(word_count))
+
+male_elf_total <- tidy_lordofrings_data %>%
+  filter(race == "elf", gender == "male") %>%
+  summarize(total_word_count = sum(word_count))
+
+print(male_hobbit_total)
+print(female_elf_total)
+print(male_elf_total)
+
+```
+a) the total number of words spoken by male hobbits is 8780 words
+b) the total number of words spoken by female elves is 1743 words
+c) the total number of words spoken by male elves is 1994 words
+
+# Question 3
+``` {r}
+race_totals <- tidy_lordofrings_data %>%
+  group_by(movie, race) %>%
+  summarize(total_words = sum(word_count), .groups = 'drop')
+
+total_words_per_movie <- race_totals %>%
+  group_by(movie) %>%
+  summarize(movie_total_words = sum(total_words), .groups = 'drop')
+
+dominant_race <- race_totals %>%
+  group_by(movie) %>%
+  slice_max(total_words, n = 1) %>%
+  left_join(total_words_per_movie, by = "movie") %>%
+  mutate(dominance_proportion = total_words / movie_total_words)
+
+print(dominant_race)
+
+man_total_movie_1 <- tidy_lordofrings_data %>%
+  filter(movie == "The Fellowship of the Ring", race == "man") %>%
+  summarize(total_words = sum(word_count))
+
+print(man_total_movie_1)
+
+
+```
+
+According to the generated tibble, in "The Fellowship of the Ring", the hobbit race accounts for 46.5% of all words spoken. In "The Return of the King", the man race accounts for 54.7% of all words spoken. In "The Two Towers", the man race accounts for 44.7% of all words spoken. Therefore, although the man race has the greater proportion of words spoken in 2 of the 3 movies, they do not necessarily "dominant", as their dominance proportion is still roughly at or under 50% of all words spoken in the 2 movies. In fact, if we calculate the proportion of words spoken by man across all 3 movies relative to all words spoken across all 3 movies, we get a proportion of ((1995+3990+2727)/(7853+7297+6095)) = 0.41 , or 41%, which indicates that man did not dominate in words spoken across all the 3 movies. 
+
+# Question 4
+
+``` {r}
+race_totals <- tidy_lordofrings_data %>%
+  group_by(movie, race) %>%
+  summarize(total_words = sum(word_count), .groups = 'drop')
+
+total_words_per_movie <- race_totals %>%
+  group_by(movie) %>%
+  summarize(movie_total_words = sum(total_words), .groups = 'drop')
+
+dominant_race <- race_totals %>%
+  group_by(movie) %>%
+  slice_max(total_words, n = 1) %>%
+  left_join(total_words_per_movie, by = "movie") %>%
+  mutate(dominance_proportion = total_words / movie_total_words)
+
+print(dominant_race)
+
+```
+-Yes, the dominant race does depend on the movie 
+- In "The fellowship of the ring", we see that the dominant race in words spoken is hobbit, with 46.5% of total words spoken
+- In both the  "The return of the king" and "The two towers" however, we see that the dominant race is man, with 54.7% and 44.7% of total words spoken, respectively

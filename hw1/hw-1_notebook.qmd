@@ -1,0 +1,157 @@
+---
+title: "Homework assignment 1"
+author: "Hussain, Mustaali"
+format: pdf
+---
+```{r}
+library(dplyr)
+library(babynames)
+```
+
+# Question 2
+```{r}
+dim(babynames)
+```
+ There are 1924665 observations, and 5 variables
+
+# Question 3
+``` {r}
+q3 <- tibble::tribble(
+  ~variable_name, ~data_type, ~description,
+  "year", "integer", "year baby was born",
+  "sex", "categorical", "sex of the baby",
+  "name", "character", "name of the baby",
+  "n", "integer", "number of babies",
+  "prop", "numeric", "proportion of the baby name within the year")
+print(q3)
+
+```
+
+# Question 4
+``` {r}
+range(babynames$year)
+
+```
+
+The range is 1880 to  2017
+
+# Question 5
+``` {r}
+babynames_no_n <- dplyr::select(babynames, year, sex, name, prop)
+
+```
+
+# Question 6
+
+
+One reason for excluding n may be if we're only interested in comparing the relative popularity of names within a single year. Since the total number of births can vary greatly between years, prop is a better measure for comparing names within a year, because it normalizes for the total number of births. n on the other hand, is more suitable for comparing across years, where the total population might change. 
+
+
+
+
+# Question 7a
+``` {r}
+second_millenium <- babynames_no_n %>% 
+filter(year<= 2000) %>%
+  group_by(sex) %>% 
+  slice_max(prop, n=1) %>% 
+  ungroup()
+
+second_millenium
+
+```
+The most popular names within the 2nd millennium for males is John, and for females Mary
+
+# Question 7b
+``` {r}
+babynames_no_n <- dplyr::select(babynames, year, sex, name, prop)
+third_millenium <- babynames_no_n %>%
+  filter(year >= 2001) %>% 
+  group_by(sex) %>% 
+  slice_max(prop, n=1) %>% 
+  ungroup()
+
+third_millenium
+
+```
+The most popular names within the 3rd millennium for males is Jacob, and for females Emily
+
+# Question 8
+```{r}
+popular_names_qvx <- babynames %>%
+  filter(year >= 2000, year <= 2012, grepl("^[QVX]", name)) %>%
+  group_by(name) %>%
+  summarize(total_n = sum(n)) %>%
+  arrange(desc(total_n))
+          
+popular_names_qvx
+          
+```
+
+The most popular names beginning with the letters Q, V, and X between 2000
+and 2012 was Quinn, Victoria, and Xavier.
+
+# Question 9
+``` {r}
+babynames_with_decade <- babynames %>%
+  mutate(decade = floor(year / 10) * 10)
+head(babynames_with_decade)
+
+
+
+```
+
+# Question 10
+``` {r}
+mean_median_babies <- babynames_with_decade %>%
+  group_by(decade, sex) %>%
+  summarize(
+    mean_n = mean(n),
+    median_n = median(n)
+  ) %>%
+  ungroup()
+mean_median_babies
+print(mean_median_babies, n = 28)
+
+```
+
+# Question 11a
+``` {r}
+mustaali_popularity <- babynames_with_decade %>%
+  filter(name == "Mustaali") %>%
+  slice_max(n, n = 1)
+
+
+```
+
+
+# Question 11b
+```{r}
+aimee_popularity <- babynames_with_decade %>%
+  filter(name == "Aimee") %>%
+  slice_max(n, n = 1)
+
+```
+
+# Question 11c
+``` {r}
+jack_popularity <- babynames_with_decade %>%
+  filter(name == "Jack") %>%
+  slice_max(n, n = 1)
+
+scott_popularity <- babynames_with_decade %>%
+  filter(name == "Scott") %>%
+  slice_max(n, n = 1)
+
+list(
+  mustaali_popularity = mustaali_popularity,
+  aimee_popularity = aimee_popularity,
+  jack_popularity = jack_popularity,
+  scott_popularity = scott_popularity
+)
+```
+
+a) My name was not popular in any year or decade, as nobody from the data set has my name
+b) My supervisor's name was most popular in the decade 1970, and the year 1977
+c) The name Scott was most popular in the decade 1970, and the year 1971. The name Jack was most popular in the decade 1920, and the year 1927
+
